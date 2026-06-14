@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fully Food｜使用者問卷</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #FFF9F2; --surface: #FFFFFF; --accent: #FF6B35;
+    --accent-light: #FFF0EB; --text: #1A1208; --muted: #8C7B6B;
+    --border: #EDE0D4; --tag-bg: #F5EDE5;
+  }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 80px; }
+  .header { background: var(--accent); padding: 28px 24px 24px; position: relative; overflow: hidden; }
+  .header::after { content: '🍜'; position: absolute; right: 24px; top: 50%; transform: translateY(-50%); font-size: 52px; opacity: 0.25; }
+  .brand { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: rgba(255,255,255,0.75); text-transform: uppercase; margin-bottom: 6px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .header p { margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.6; }
+  .progress-wrap { padding: 14px 24px; position: sticky; top: 0; background: var(--bg); z-index: 10; border-bottom: 1px solid var(--border); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+  .section { display: none; padding: 24px; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+  .section-title { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+  .section-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+  .question { margin-bottom: 28px; }
+  .question-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+  .question-hint { font-size: 12px; color: var(--muted); font-weight: 400; display: block; margin-top: 3px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .other-input-wrap { display: none; margin-top: 10px; width: 100%; }
+  .other-input-wrap.visible { display: block; animation: fadeIn 0.2s ease; }
+  .other-input { width: 100%; border: 1.5px solid var(--accent); border-radius: 12px; padding: 10px 14px; font-size: 14px; font-family: inherit; color: var(--text); background: var(--accent-light); outline: none; }
+  .other-input::placeholder { color: var(--muted); }
+  #pain-scales { margin-top: 4px; }
+  .pain-scale-block { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 14px 12px; margin-top: 12px; animation: fadeIn 0.25s ease; }
+  .pain-scale-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .scale { display: flex; gap: 6px; }
+  .scale-btn { flex: 1; aspect-ratio: 1; max-width: 48px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 700; background: var(--surface); color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  .scale-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .scale-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .rank-list { display: flex; flex-direction: column; gap: 8px; }
+  .rank-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; cursor: grab; touch-action: none; user-select: none; transition: box-shadow 0.15s, border-color 0.15s; }
+  .rank-item.dragging { box-shadow: 0 6px 20px rgba(0,0,0,0.12); border-color: var(--accent); opacity: 0.9; }
+  .rank-number { width: 24px; height: 24px; border-radius: 50%; background: var(--tag-bg); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .rank-text { font-size: 13px; font-weight: 500; flex: 1; }
+  .rank-handle { color: var(--border); font-size: 16px; }
+  textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 14px; font-family: inherit; color: var(--text); background: var(--surface); resize: none; outline: none; transition: border-color 0.15s; line-height: 1.6; }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+  .nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; gap: 10px; z-index: 20; }
+  .btn-back { flex: 0 0 auto; padding: 14px 20px; border: 1.5px solid var(--border); border-radius: 14px; background: transparent; font-size: 14px; font-family: inherit; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .btn-back:hover { border-color: var(--text); color: var(--text); }
+  .btn-next { flex: 1; padding: 14px; border: none; border-radius: 14px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
+  .btn-next:hover { opacity: 0.88; }
+  .thankyou { text-align: center; padding: 48px 24px; }
+  .thankyou-icon { font-size: 56px; margin-bottom: 16px; }
+  .thankyou h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  .thankyou p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .result-card { margin-top: 28px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px; text-align: left; }
+  .result-card h3 { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .result-row { font-size: 13px; color: var(--text); padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .result-tag { display: inline-block; background: var(--accent-light); color: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 500; margin: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">Fully Food</div>
+  <h1>你的吃飯習慣<br>幫我們做出更好的 App</h1>
+  <p>約 3–4 分鐘完成，你的回答直接影響產品方向 🙏</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span id="progress-text">第 1 部分，共 5 部分</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<!-- SECTION 1: 用餐習慣 -->
+<div class="section active" id="section-1">
+  <div class="section-eyebrow">Part 1 · 用餐習慣</div>
+  <div class="section-title">你平常怎麼吃飯？</div>
+  <div class="section-desc">讓我們了解你的日常用餐節奏</div>
+  <div class="question">
+    <div class="question-label">你最常在什麼場合吃飯？<span class="question-hint">可多選</span></div>
+    <div class="chips" data-key="occasion" data-multi="true">
+      <button class="chip" data-val="oneself">一個人吃</button>
+      <button class="chip" data-val="couple">兩個人</button>
+      <button class="chip" data-val="friends">三五好友</button>
+      <button class="chip" data-val="family">家庭聚餐</button>
+      <button class="chip" data-val="work">同事聚餐</button>
+      <button class="chip" data-val="date">約會</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">你一週外食幾次？</div>
+    <div class="chips" data-key="freq" data-multi="false">
+      <button class="chip" data-val="1-2">1–2 次</button>
+      <button class="chip" data-val="3-4">3–4 次</button>
+      <button class="chip" data-val="5-6">5–6 次</button>
+      <button class="chip" data-val="daily">幾乎每天</button>
+      <button class="chip" data-val="triple">一天超過一次</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">你平常怎麼決定去哪吃？<span class="question-hint">可多選</span></div>
+    <div class="chips" data-key="decide_method" data-multi="true" data-has-other="true">
+      <button class="chip" data-val="google">Google Maps 搜尋</button>
+      <button class="chip" data-val="ig">IG / 社群找靈感</button>
+      <button class="chip" data-val="friend">朋友推薦</button>
+      <button class="chip" data-val="habit">直接去常去的店</button>
+      <button class="chip" data-val="walk">走到哪看到哪</button>
+      <button class="chip" data-val="ubereats">外送 App 看看</button>
+      <button class="chip" data-val="other" data-is-other="true">其他</button>
+    </div>
+    <div class="other-input-wrap" id="other-decide_method">
+      <input class="other-input" type="text" placeholder="請輸入你的方式⋯⋯" id="other-text-decide_method" />
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: 痛點 -->
+<div class="section" id="section-2">
+  <div class="section-eyebrow">Part 2 · 找餐廳的煩惱</div>
+  <div class="section-title">找餐廳時，最讓你頭痛的是什麼？</div>
+  <div class="section-desc">選出你遇過的痛點，我們會問你每項有多困擾</div>
+  <div class="question">
+    <div class="question-label">以下哪些是你的痛點？<span class="question-hint">可多選，選完下方會出現量表</span></div>
+    <div class="chips" data-key="pain" data-multi="true" data-has-other="true" id="pain-chips">
+      <button class="chip" data-val="crowd" data-label="不知道現在人多不多">不知道現在人多不多</button>
+      <button class="chip" data-val="wait"  data-label="到了才發現要等很久">到了才發現要等很久</button>
+      <button class="chip" data-val="menu"  data-label="進去前看不到菜單">進去前看不到菜單</button>
+      <button class="chip" data-val="price" data-label="不知道大概多少錢">不知道大概多少錢</button>
+      <button class="chip" data-val="decide" data-label="跟朋友喬很久喬不出來">跟朋友喬很久喬不出來</button>
+      <button class="chip" data-val="open"  data-label="不確定現在還有沒有開">不確定現在還有沒有開</button>
+      <button class="chip" data-val="party" data-label="不知道適不適合多人聚餐">不知道適不適合多人聚餐</button>
+      <button class="chip" data-val="navigate" data-label="找到了但不好找位置">找到了但不好找位置</button>
+      <button class="chip" data-val="other_pain" data-is-other="true" data-label="其他">其他</button>
+    </div>
+    <div class="other-input-wrap" id="other-pain">
+      <input class="other-input" type="text" placeholder="請輸入其他痛點⋯⋯" id="other-text-pain" />
+    </div>
+    <div id="pain-scales"></div>
+  </div>
+  <div class="question">
+    <div class="question-label">你曾因為等太久或人太多，最後放棄這家店嗎？</div>
+    <div class="chips" data-key="gave_up" data-multi="false">
+      <button class="chip" data-val="often">常常這樣</button>
+      <button class="chip" data-val="sometimes">偶爾</button>
+      <button class="chip" data-val="rarely">很少</button>
+      <button class="chip" data-val="never">沒有</button>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: 功能期待 -->
+<div class="section" id="section-3">
+  <div class="section-eyebrow">Part 3 · 你希望 App 幫你解決什麼</div>
+  <div class="section-title">「現在要去哪吃」—你最想知道什麼？</div>
+  <div class="section-desc">拖拉排序，把最重要的放最上面</div>
+  <div class="question">
+    <div class="question-label">幫我們排出你最在乎的資訊順序<span class="question-hint">拖拉可調整順序</span></div>
+    <div class="rank-list" id="rank-list">
+      <div class="rank-item" data-val="crowd_live"><div class="rank-number">1</div><div class="rank-text">🔴 現在人多不多（即時人流）</div><div class="rank-handle">⋮⋮</div></div>
+      <div class="rank-item" data-val="menu_price"><div class="rank-number">2</div><div class="rank-text">🍽 菜單 + 價格</div><div class="rank-handle">⋮⋮</div></div>
+      <div class="rank-item" data-val="reservation"><div class="rank-number">3</div><div class="rank-text">📅 可以直接訂位</div><div class="rank-handle">⋮⋮</div></div>
+      <div class="rank-item" data-val="waitlist"><div class="rank-number">4</div><div class="rank-text">⏱ 遠端候位（不用現場排）</div><div class="rank-handle">⋮⋮</div></div>
+      <div class="rank-item" data-val="rating"><div class="rank-number">5</div><div class="rank-text">⭐ 評分 / 評論</div><div class="rank-handle">⋮⋮</div></div>
+      <div class="rank-item" data-val="delivery"><div class="rank-number">6</div><div class="rank-text">🛵 外送 / 外帶連結</div><div class="rank-handle">⋮⋮</div></div>
+      <div class="rank-item" data-val="party"><div class="rank-number">7</div><div class="rank-text">👥 適合幾個人（最大桌）</div><div class="rank-handle">⋮⋮</div></div>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">如果一個 App 能幫你「立刻決定現在去哪吃」，你願意用嗎？</div>
+    <div class="chips" data-key="will_use" data-multi="false">
+      <button class="chip" data-val="yes_replace">願意，可能取代現在用的方法</button>
+      <button class="chip" data-val="yes_add">願意，當補充工具</button>
+      <button class="chip" data-val="maybe">要看功能夠不夠好</button>
+      <button class="chip" data-val="no">不太需要</button>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: 使用情境 -->
+<div class="section" id="section-4">
+  <div class="section-eyebrow">Part 4 · 使用情境</div>
+  <div class="section-title">你通常什麼時候最需要找餐廳？</div>
+  <div class="section-desc">幫我們了解真實使用場景</div>
+  <div class="question">
+    <div class="question-label">你通常多早開始找要去哪吃？</div>
+    <div class="chips" data-key="when_search" data-multi="false">
+      <button class="chip" data-val="same_day_before">當天出門前</button>
+      <button class="chip" data-val="on_the_way">在路上才找</button>
+      <button class="chip" data-val="arrived">到了附近才找</button>
+      <button class="chip" data-val="day_before">前一天先查好</button>
+      <button class="chip" data-val="week_before">計畫型，提早幾天</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">你最常在哪個裝置找餐廳？</div>
+    <div class="chips" data-key="device" data-multi="false">
+      <button class="chip" data-val="phone">手機</button>
+      <button class="chip" data-val="desktop">電腦</button>
+      <button class="chip" data-val="both">都有</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">如果 App 有「現在不用等」快速篩選，你會常用嗎？</div>
+    <div class="chips" data-key="nowait_filter" data-multi="false">
+      <button class="chip" data-val="always">每次找餐廳都想先篩這個</button>
+      <button class="chip" data-val="often">趕時間時會用</button>
+      <button class="chip" data-val="sometimes">偶爾</button>
+      <button class="chip" data-val="no">不太在意等待</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">你目前最常用哪個 App 找餐廳？<span class="question-hint">可多選</span></div>
+    <div class="chips" data-key="current_app" data-multi="true" data-has-other="true">
+      <button class="chip" data-val="googlemaps">Google Maps</button>
+      <button class="chip" data-val="yelp">Yelp</button>
+      <button class="chip" data-val="instagram">Instagram</button>
+      <button class="chip" data-val="ubereats">Uber Eats</button>
+      <button class="chip" data-val="foodpanda">foodpanda</button>
+      <button class="chip" data-val="none">沒有固定</button>
+      <button class="chip" data-val="other_app" data-is-other="true">其他</button>
+    </div>
+    <div class="other-input-wrap" id="other-current_app">
+      <input class="other-input" type="text" placeholder="請輸入 App 名稱⋯⋯" id="other-text-current_app" />
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">你有用過餐廳訂位 App 嗎？</div>
+    <div class="chips" data-key="used_booking" data-multi="false">
+      <button class="chip" data-val="yes_often">有，常常用</button>
+      <button class="chip" data-val="yes_sometimes">有，偶爾用</button>
+      <button class="chip" data-val="no_tried">試過但沒繼續用</button>
+      <button class="chip" data-val="no_never">沒有用過</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">還有什麼想對我們說的？<span class="question-hint">任何想法或建議都歡迎</span></div>
+    <textarea id="open_comment" rows="4" placeholder="例如：我最想要的功能是⋯⋯ / 我覺得現有 App 最欠缺的是⋯⋯"></textarea>
+  </div>
+</div>
+
+<!-- SECTION 5: 個人資料 -->
+<div class="section" id="section-5">
+  <div class="section-eyebrow">Part 5 · 關於你</div>
+  <div class="section-title">最後一步！告訴我們一點基本資料</div>
+  <div class="section-desc">幫助我們了解不同族群的需求，資料僅供研究用途</div>
+  <div class="question">
+    <div class="question-label">性別</div>
+    <div class="chips" data-key="gender" data-multi="false">
+      <button class="chip" data-val="male">男</button>
+      <button class="chip" data-val="female">女</button>
+      <button class="chip" data-val="other_gender">其他</button>
+      <button class="chip" data-val="no_say">不透露</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">年齡</div>
+    <div class="chips" data-key="age" data-multi="false">
+      <button class="chip" data-val="under18">18 歲以下</button>
+      <button class="chip" data-val="18-24">18–24 歲</button>
+      <button class="chip" data-val="25-34">25–34 歲</button>
+      <button class="chip" data-val="35-44">35–44 歲</button>
+      <button class="chip" data-val="45plus">45 歲以上</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">居住地區</div>
+    <div class="chips" data-key="region" data-multi="false">
+      <button class="chip" data-val="north">北部</button>
+      <button class="chip" data-val="central">中部</button>
+      <button class="chip" data-val="south">南部</button>
+      <button class="chip" data-val="east">東部</button>
+      <button class="chip" data-val="island">離島</button>
+      <button class="chip" data-val="overseas">海外</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">職業狀態</div>
+    <div class="chips" data-key="occupation" data-multi="false">
+      <button class="chip" data-val="student">學生</button>
+      <button class="chip" data-val="office">上班族</button>
+      <button class="chip" data-val="freelance">自由工作者</button>
+      <button class="chip" data-val="business">自營商／老闆</button>
+      <button class="chip" data-val="other_job">其他</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">每餐平均預算（一個人）</div>
+    <div class="chips" data-key="budget" data-multi="false">
+      <button class="chip" data-val="under100">100 元以下</button>
+      <button class="chip" data-val="100-200">100–200 元</button>
+      <button class="chip" data-val="200-400">200–400 元</button>
+      <button class="chip" data-val="400plus">400 元以上</button>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-label">最常外食用餐的時段<span class="question-hint">可多選</span></div>
+    <div class="chips" data-key="meal_time" data-multi="true">
+      <button class="chip" data-val="breakfast">早餐</button>
+      <button class="chip" data-val="lunch">午餐</button>
+      <button class="chip" data-val="dinner">晚餐</button>
+      <button class="chip" data-val="latenight">宵夜</button>
+      <button class="chip" data-val="brunch">早午餐</button>
+      <button class="chip" data-val="aftn">下午茶</button>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: Thank you -->
+<div class="section" id="section-6">
+  <div class="thankyou">
+    <div class="thankyou-icon">🎉</div>
+    <h2>感謝你的回答！</h2>
+    <p>你的每一個選擇都在幫助我們把<br><strong>Fully Food</strong> 做得更好。<br>期待讓你試用第一版！</p>
+    <div class="result-card">
+      <h3>你的回答摘要</h3>
+      <div id="result-body"></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="btn-back" id="btn-back" style="display:none" onclick="goBack()">← 上一步</button>
+  <button class="btn-next" id="btn-next" onclick="goNext()">繼續 →</button>
+</div>
+
+<script>
+const TOTAL = 5;
+let current = 1;
+const answers = {};
+
+function updateProgress() {
+  const pct = Math.round(((current - 1) / TOTAL) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-text').textContent =
+    current <= TOTAL ? `第 ${current} 部分，共 ${TOTAL} 部分` : '完成！';
+}
+
+function goNext() {
+  if (current < TOTAL) {
+    document.getElementById('section-' + current).classList.remove('active');
+    current++;
+    document.getElementById('section-' + current).classList.add('active');
+    document.getElementById('btn-back').style.display = 'block';
+    if (current === TOTAL) document.getElementById('btn-next').textContent = '送出問卷 ✓';
+    updateProgress();
+    window.scrollTo(0, 0);
+  } else {
+    answers['open_comment'] = document.getElementById('open_comment').value;
+    const rankItems = document.querySelectorAll('#rank-list .rank-item');
+    answers['priority_rank'] = Array.from(rankItems).map(el => el.dataset.val);
+    submitSurvey();
+  }
+}
+
+function goBack() {
+  if (current > 1) {
+    document.getElementById('section-' + current).classList.remove('active');
+    current--;
+    document.getElementById('section-' + current).classList.add('active');
+    if (current === 1) document.getElementById('btn-back').style.display = 'none';
+    document.getElementById('btn-next').textContent = current === TOTAL ? '送出問卷 ✓' : '繼續 →';
+    updateProgress();
+    window.scrollTo(0, 0);
+  }
+}
+
+function submitSurvey() {
+  document.getElementById('section-' + TOTAL).classList.remove('active');
+  const s6 = document.getElementById('section-6');
+  s6.style.display = 'block';
+  s6.classList.add('active');
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-back').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-pct').textContent = '100%';
+  document.getElementById('progress-text').textContent = '完成！';
+  renderResults();
+  window.scrollTo(0, 0);
+
+  const payload = {
+    occasion:       (answers.occasion || []).join(', '),
+    freq:           answers.freq || '',
+    decide_method:  (answers.decide_method || []).join(', '),
+    other_decide:   document.getElementById('other-text-decide_method')?.value || '',
+    pain:           (answers.pain || []).join(', '),
+    other_pain:     document.getElementById('other-text-pain')?.value || '',
+    pain_scores:    Object.entries(answers.pain_scores || {}).map(([k,v]) => `${painLabels[k]}:${v}`).join(', '),
+    gave_up:        answers.gave_up || '',
+    priority_rank:  (answers.priority_rank || []).slice(0,3).join(' > '),
+    will_use:       answers.will_use || '',
+    when_search:    answers.when_search || '',
+    device:         answers.device || '',
+    nowait_filter:  answers.nowait_filter || '',
+    current_app:    (answers.current_app || []).join(', '),
+    other_app:      document.getElementById('other-text-current_app')?.value || '',
+    used_booking:   answers.used_booking || '',
+    open_comment:   answers.open_comment || '',
+    gender:         answers.gender || '',
+    age:            answers.age || '',
+    region:         answers.region || '',
+    occupation:     answers.occupation || '',
+    budget:         answers.budget || '',
+    meal_time:      (answers.meal_time || []).join(', ')
+  };
+
+  fetch('https://script.google.com/macros/s/AKfycbyLDYifKr3WZVrw854AGSiSQKzA6caaOHZ1QgutqBeWy-l5oexWFbMkcPWXHqD0DTsycQ/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(err => console.warn('試算表送出失敗', err));
+}
+
+// ── Chip selection ────────────────────────────────────────
+document.querySelectorAll('.chips').forEach(group => {
+  const isMulti = group.dataset.multi === 'true';
+  const key = group.dataset.key;
+  const hasOther = group.dataset.hasOther === 'true';
+  group.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isOther = btn.dataset.isOther === 'true';
+      if (!isMulti) {
+        group.querySelectorAll('.chip').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        answers[key] = btn.dataset.val;
+      } else {
+        btn.classList.toggle('selected');
+        answers[key] = Array.from(group.querySelectorAll('.chip.selected')).map(b => b.dataset.val);
+      }
+      if (hasOther) {
+        const otherWrap = document.getElementById('other-' + key);
+        if (otherWrap) {
+          const otherBtn = group.querySelector('[data-is-other="true"]');
+          if (otherBtn && otherBtn.classList.contains('selected')) {
+            otherWrap.classList.add('visible');
+            document.getElementById('other-text-' + key)?.focus();
+          } else {
+            otherWrap.classList.remove('visible');
+          }
+        }
+      }
+      if (key === 'pain') renderPainScales();
+    });
+  });
+});
+
+// ── Pain scales ───────────────────────────────────────────
+const painLabels = {
+  crowd:'不知道現在人多不多', wait:'到了才發現要等很久',
+  menu:'進去前看不到菜單', price:'不知道大概多少錢',
+  decide:'跟朋友喬很久喬不出來', open:'不確定現在還有沒有開',
+  party:'不知道適不適合多人聚餐', navigate:'找到了但不好找位置', other_pain:'其他'
+};
+
+function renderPainScales() {
+  const selected = Array.from(document.querySelectorAll('#pain-chips .chip.selected'))
+    .map(b => b.dataset.val).filter(v => v !== 'other_pain');
+  const container = document.getElementById('pain-scales');
+  if (!answers.pain_scores) answers.pain_scores = {};
+  container.querySelectorAll('.pain-scale-block').forEach(block => {
+    if (!selected.includes(block.dataset.painVal)) block.remove();
+  });
+  selected.forEach(val => {
+    if (container.querySelector(`[data-pain-val="${val}"]`)) return;
+    const block = document.createElement('div');
+    block.className = 'pain-scale-block';
+    block.dataset.painVal = val;
+    block.innerHTML = `
+      <div class="pain-scale-label">「${painLabels[val]}」對你有多困擾？</div>
+      <div class="scale" id="scale-${val}">
+        <button class="scale-btn" data-score="1">1</button>
+        <button class="scale-btn" data-score="2">2</button>
+        <button class="scale-btn" data-score="3">3</button>
+        <button class="scale-btn" data-score="4">4</button>
+        <button class="scale-btn" data-score="5">5</button>
+      </div>
+      <div class="scale-labels"><span>完全不困擾</span><span>非常困擾</span></div>`;
+    container.appendChild(block);
+    if (answers.pain_scores[val]) {
+      block.querySelectorAll('.scale-btn').forEach(b => {
+        if (b.dataset.score === answers.pain_scores[val]) b.classList.add('selected');
+      });
+    }
+    block.querySelectorAll('.scale-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        block.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        answers.pain_scores[val] = btn.dataset.score;
+      });
+    });
+  });
+}
+
+// ── Rank drag ─────────────────────────────────────────────
+const rankList = document.getElementById('rank-list');
+let dragging = null;
+rankList.querySelectorAll('.rank-item').forEach(item => {
+  item.addEventListener('mousedown', dragStart);
+  item.addEventListener('touchstart', dragStartTouch, { passive: true });
+});
+function dragStart(e) { dragging = e.currentTarget; dragging.classList.add('dragging'); document.addEventListener('mousemove', dragMove); document.addEventListener('mouseup', dragEnd); }
+function dragStartTouch(e) { dragging = e.currentTarget; dragging.classList.add('dragging'); document.addEventListener('touchmove', dragMoveTouch, { passive: false }); document.addEventListener('touchend', dragEnd); }
+function getTargetItem(y) { return [...rankList.querySelectorAll('.rank-item:not(.dragging)')].find(item => y < item.getBoundingClientRect().top + item.getBoundingClientRect().height / 2) || null; }
+function dragMove(e) { if (!dragging) return; const t = getTargetItem(e.clientY); t ? rankList.insertBefore(dragging, t) : rankList.appendChild(dragging); updateRankNumbers(); }
+function dragMoveTouch(e) { if (!dragging) return; e.preventDefault(); const t = getTargetItem(e.touches[0].clientY); t ? rankList.insertBefore(dragging, t) : rankList.appendChild(dragging); updateRankNumbers(); }
+function dragEnd() { if (dragging) dragging.classList.remove('dragging'); dragging = null; document.removeEventListener('mousemove', dragMove); document.removeEventListener('mouseup', dragEnd); document.removeEventListener('touchmove', dragMoveTouch); document.removeEventListener('touchend', dragEnd); updateRankNumbers(); }
+function updateRankNumbers() { rankList.querySelectorAll('.rank-item').forEach((item, i) => { item.querySelector('.rank-number').textContent = i + 1; }); }
+
+// ── Results ───────────────────────────────────────────────
+function renderResults() {
+  const labels = {
+    occasion:     { oneself:'一個人吃', couple:'兩個人', friends:'三五好友', family:'家庭聚餐', work:'同事聚餐', date:'約會' },
+    freq:         { '1-2':'1–2 次', '3-4':'3–4 次', '5-6':'5–6 次', daily:'幾乎每天', triple:'一天超過一次' },
+    decide_method:{ google:'Google Maps', ig:'IG/社群', friend:'朋友推薦', habit:'固定老店', walk:'走到哪', ubereats:'外送App', other:'其他' },
+    pain:         { crowd:'不知人多不多', wait:'到了才等很久', menu:'進去前沒菜單', price:'不知道價位', decide:'喬不出來', open:'不確定有沒開', party:'不知多人適不適合', navigate:'難找位置', other_pain:'其他' },
+    gave_up:      { often:'常常', sometimes:'偶爾', rarely:'很少', never:'沒有' },
+    will_use:     { yes_replace:'願意，可能取代', yes_add:'願意，當補充', maybe:'看功能夠不夠', no:'不太需要' },
+    when_search:  { same_day_before:'當天出門前', on_the_way:'在路上', arrived:'到了附近', day_before:'前一天', week_before:'提早幾天' },
+    device:       { phone:'手機', desktop:'電腦', both:'都有' },
+    nowait_filter:{ always:'每次都要', often:'趕時間用', sometimes:'偶爾', no:'不在意' },
+    current_app:  { googlemaps:'Google Maps', yelp:'Yelp', instagram:'Instagram', ubereats:'Uber Eats', foodpanda:'foodpanda', none:'沒有固定', other_app:'其他' },
+    used_booking: { yes_often:'有，常常用', yes_sometimes:'有，偶爾用', no_tried:'試過沒繼續', no_never:'沒用過' },
+    gender:       { male:'男', female:'女', other_gender:'其他', no_say:'不透露' },
+    age:          { under18:'18歲以下', '18-24':'18–24歲', '25-34':'25–34歲', '35-44':'35–44歲', '45plus':'45歲以上' },
+    region:       { north:'北部', central:'中部', south:'南部', east:'東部', island:'離島', overseas:'海外' },
+    occupation:   { student:'學生', office:'上班族', freelance:'自由工作者', business:'自營商/老闆', other_job:'其他' },
+    budget:       { under100:'100元以下', '100-200':'100–200元', '200-400':'200–400元', '400plus':'400元以上' },
+    meal_time:    { breakfast:'早餐', lunch:'午餐', dinner:'晚餐', latenight:'宵夜', brunch:'早午餐', aftn:'下午茶' }
+  };
+  const sectionTitles = {
+    occasion:'場合', freq:'外食頻率', decide_method:'找餐廳方式',
+    pain:'痛點', gave_up:'曾放棄店家', will_use:'願意使用',
+    priority_rank:'最在乎的資訊（Top3）', when_search:'幾時開始找',
+    device:'使用裝置', nowait_filter:'「現在不用等」篩選',
+    current_app:'目前用的App', used_booking:'訂位App經驗',
+    open_comment:'留言', gender:'性別', age:'年齡',
+    region:'居住地區', occupation:'職業', budget:'每餐預算', meal_time:'常用餐時段'
+  };
+  const rankLabels = { crowd_live:'即時人流', menu_price:'菜單+價格', reservation:'訂位', waitlist:'遠端候位', rating:'評分評論', delivery:'外送/外帶', party:'適合幾人' };
+
+  let html = '';
+  for (const [key, val] of Object.entries(answers)) {
+    if (key === 'pain_scores') continue;
+    if (!val || (Array.isArray(val) && !val.length)) continue;
+    const title = sectionTitles[key] || key;
+    let display = '';
+    if (key === 'priority_rank') {
+      display = val.slice(0,3).map((v,i) => `<span class="result-tag">${i+1}. ${rankLabels[v]||v}</span>`).join('') + ' <span style="color:var(--muted);font-size:12px">（Top 3）</span>';
+    } else if (key === 'open_comment') {
+      display = val ? `<em style="color:var(--muted)">${val}</em>` : '（未填寫）';
+    } else if (Array.isArray(val)) {
+      display = val.map(v => `<span class="result-tag">${(labels[key]||{})[v]||v}</span>`).join('');
+    } else {
+      display = `<span class="result-tag">${(labels[key]||{})[val]||val}</span>`;
+    }
+    html += `<div class="result-row"><strong>${title}：</strong>${display}</div>`;
+  }
+  if (answers.pain_scores && Object.keys(answers.pain_scores).length) {
+    const scoreDisplay = Object.entries(answers.pain_scores).map(([k,v]) => `<span class="result-tag">${painLabels[k]} ${v}/5</span>`).join('');
+    html += `<div class="result-row"><strong>痛點困擾程度：</strong>${scoreDisplay}</div>`;
+  }
+  const otherDecide = document.getElementById('other-text-decide_method')?.value;
+  if (otherDecide) html += `<div class="result-row"><strong>其他找餐廳方式：</strong><em style="color:var(--muted)">${otherDecide}</em></div>`;
+  const otherPain = document.getElementById('other-text-pain')?.value;
+  if (otherPain) html += `<div class="result-row"><strong>其他痛點：</strong><em style="color:var(--muted)">${otherPain}</em></div>`;
+  const otherApp = document.getElementById('other-text-current_app')?.value;
+  if (otherApp) html += `<div class="result-row"><strong>其他App：</strong><em style="color:var(--muted)">${otherApp}</em></div>`;
+
+  document.getElementById('result-body').innerHTML = html || '<div class="result-row" style="color:var(--muted)">（尚無填答資料）</div>';
+}
+
+updateProgress();
+</script>
+</body>
+</html>
